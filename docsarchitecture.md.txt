@@ -1,0 +1,12 @@
+# Architecture
+
+## Components
+
+1. Embedding Model (Sentence-BERT)
+2. Vector Database (FAISS)
+3. Retriever
+4. Generator (GPT-2)
+
+## Flow
+
+User Query → Embedding → FAISS Search → Context Retrieval → LLM → Answer

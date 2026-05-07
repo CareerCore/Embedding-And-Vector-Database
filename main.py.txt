@@ -1,0 +1,16 @@
+from utils import load_model, create_index, retrieve, rag_pipeline
+
+def main():
+    print("RAG Pipeline Started")
+
+    while True:
+        query = input("\nAsk (type exit to stop): ")
+        if query.lower() == "exit":
+            break
+
+        docs, answer = rag_pipeline(query)
+        print("\nRetrieved Docs:", docs)
+        print("\nAnswer:\n", answer)
+
+if __name__ == "__main__":
+    main()

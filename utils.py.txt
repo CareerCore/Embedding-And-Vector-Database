@@ -1,0 +1,43 @@
+from sentence_transformers import SentenceTransformer
+import numpy as np
+import faiss
+from transformers import pipeline
+from config import MODEL_NAME, GEN_MODEL, TOP_K, MAX_LENGTH
+
+# Load models
+embedder = SentenceTransformer(MODEL_NAME)
+generator = pipeline("text-generation", model=GEN_MODEL)
+
+# Dummy storage
+documents = ["This is a sample document for testing RAG pipeline."]
+
+# Create embeddings
+doc_embeddings = embedder.encode(documents)
+doc_embeddings = np.array(doc_embeddings).astype("float32")
+
+# Create FAISS index
+dimension = doc_embeddings.shape[1]
+index = faiss.IndexFlatL2(dimension)
+index.add(doc_embeddings)
+
+def retrieve(query, top_k=TOP_K):
+    query_embedding = embedder.encode([query])
+    query_embedding = np.array(query_embedding).astype("float32")
+
+    distances, indices = index.search(query_embedding, top_k)
+    return [documents[i] for i in indices[0]]
+
+def rag_pipeline(query):
+    retrieved_docs = retrieve(query)
+    context = " ".join(retrieved_docs)
+
+    prompt = f"""
+    Answer the question based on the context below:
+
+    Context: {context}
+    Question: {query}
+    Answer:
+    """
+
+    response = generator(prompt, max_length=MAX_LENGTH, num_return_sequences=1)
+    return retrieved_docs, response[0]["generated_text"]
